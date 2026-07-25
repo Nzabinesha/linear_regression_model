@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const PharmacyPricePredictorApp());
@@ -23,11 +23,7 @@ class PharmacyPricePredictorApp extends StatelessWidget {
   }
 }
 
-/// -------------------------------------------------------------------
-/// IMPORTANT: replace this with your deployed Render URL, e.g.
-/// "https://your-service-name.onrender.com"
-/// -------------------------------------------------------------------
-const String kApiBaseUrl = "https://your-service-name.onrender.com";
+const String kApiBaseUrl = "https://linear-regression-model-8eej.onrender.com";
 
 class PredictionPage extends StatefulWidget {
   const PredictionPage({super.key});
@@ -61,37 +57,93 @@ class _PredictionPageState extends State<PredictionPage> {
   String? _errorText;
 
   static const packContainers = [
-    "ampoule", "bottle", "box", "other", "packet", "strip", "tube", "vial"
+    "ampoule",
+    "bottle",
+    "box",
+    "other",
+    "packet",
+    "strip",
+    "tube",
+    "vial"
   ];
   static const packForms = [
-    "capsule sr", "capsules", "cream", "drop", "dry syrup", "eye drop", "gel",
-    "infusion", "injection", "lotion", "ointment", "ophthalmic solution",
-    "oral drops", "oral solution", "oral suspension", "other",
-    "powder for injection", "soap", "soft gelatin capsules", "solution",
-    "suspension", "syrup", "tablet", "tablet cr", "tablet dt", "tablet er",
-    "tablet md", "tablet pr", "tablet sr", "tablets"
+    "capsule sr",
+    "capsules",
+    "cream",
+    "drop",
+    "dry syrup",
+    "eye drop",
+    "gel",
+    "infusion",
+    "injection",
+    "lotion",
+    "ointment",
+    "ophthalmic solution",
+    "oral drops",
+    "oral solution",
+    "oral suspension",
+    "other",
+    "powder for injection",
+    "soap",
+    "soft gelatin capsules",
+    "solution",
+    "suspension",
+    "syrup",
+    "tablet",
+    "tablet cr",
+    "tablet dt",
+    "tablet er",
+    "tablet md",
+    "tablet pr",
+    "tablet sr",
+    "tablets"
   ];
   static const therapeuticClasses = [
-    "ANTI DIABETIC", "ANTI INFECTIVES", "ANTI MALARIALS", "ANTI NEOPLASTICS",
-    "BLOOD RELATED", "CARDIAC", "DERMA", "GASTRO INTESTINAL", "GYNAECOLOGICAL",
-    "HORMONES", "NEURO CNS", "OPHTHAL", "OPHTHAL OTOLOGICALS", "OTHERS",
-    "OTOLOGICALS", "PAIN ANALGESICS", "RESPIRATORY",
-    "SEX STIMULANTS REJUVENATORS", "STOMATOLOGICALS", "UNKNOWN", "UROLOGY",
-    "VACCINES", "VITAMINS MINERALS NUTRIENTS"
+    "ANTI DIABETIC",
+    "ANTI INFECTIVES",
+    "ANTI MALARIALS",
+    "ANTI NEOPLASTICS",
+    "BLOOD RELATED",
+    "CARDIAC",
+    "DERMA",
+    "GASTRO INTESTINAL",
+    "GYNAECOLOGICAL",
+    "HORMONES",
+    "NEURO CNS",
+    "OPHTHAL",
+    "OPHTHAL OTOLOGICALS",
+    "OTHERS",
+    "OTOLOGICALS",
+    "PAIN ANALGESICS",
+    "RESPIRATORY",
+    "SEX STIMULANTS REJUVENATORS",
+    "STOMATOLOGICALS",
+    "UNKNOWN",
+    "UROLOGY",
+    "VACCINES",
+    "VITAMINS MINERALS NUTRIENTS"
   ];
   static const chemicalClasses = [
-    "Aminoglycosides", "Aminopenicillins {Penicillins}", "Anabolic steroid",
-    "Azole derivatives {Imidazoles}", "Azoles {Triazoles}",
+    "Aminoglycosides",
+    "Aminopenicillins {Penicillins}",
+    "Anabolic steroid",
+    "Azole derivatives {Imidazoles}",
+    "Azoles {Triazoles}",
     "Benzodiazepines Derivative",
     "Broad Spectrum (Third & fourth generation cephalosporins)",
     "Broad spectrum (Third & fourth generation cephalosporins}",
-    "Carbazole Derivative", "Fluoroquinolone",
+    "Carbazole Derivative",
+    "Fluoroquinolone",
     "Gluco/mineralocorticoids, progestogins and derivatives",
     "Glucocorticoids",
     "Intermediate spectrum {Second generation cephalosporins}",
-    "Macrolides", "OTHER", "P-Aminophenol Derivative",
-    "Phenylacetic acid Derivative", "Piperazine Derivatives",
-    "Pyrrole & heptanoic acid derivative", "Sulfinylbenzimidazole Derivative",
+    "Macrolides",
+    "OTHER",
+    "P-Aminophenol Derivative",
+    "Phenylacetic acid Derivative",
+    "Piperazine Derivatives",
+    "Pyrrole & heptanoic acid derivative",
+    "Sulfinylbenzimidazole Derivative",
     "Timoprazole Derivative"
   ];
 
@@ -113,15 +165,18 @@ class _PredictionPageState extends State<PredictionPage> {
     if (value == null || value.trim().isEmpty) return "$label is required";
     final parsed = int.tryParse(value.trim());
     if (parsed == null) return "$label must be a whole number";
-    if (parsed < min || parsed > max) return "$label must be between $min and $max";
+    if (parsed < min || parsed > max)
+      return "$label must be between $min and $max";
     return null;
   }
 
-  String? _requiredDoubleInRange(String? value, double min, double max, String label) {
+  String? _requiredDoubleInRange(
+      String? value, double min, double max, String label) {
     if (value == null || value.trim().isEmpty) return "$label is required";
     final parsed = double.tryParse(value.trim());
     if (parsed == null) return "$label must be a number";
-    if (parsed < min || parsed > max) return "$label must be between $min and $max";
+    if (parsed < min || parsed > max)
+      return "$label must be between $min and $max";
     return null;
   }
 
@@ -149,7 +204,8 @@ class _PredictionPageState extends State<PredictionPage> {
       "is_discontinued": int.parse(_isDiscontinuedCtrl.text.trim()),
       "manufacturer_size": int.parse(_manufacturerSizeCtrl.text.trim()),
       "pack_quantity": double.parse(_packQuantityCtrl.text.trim()),
-      "composition1_strength_mg": double.parse(_compositionStrengthCtrl.text.trim()),
+      "composition1_strength_mg":
+          double.parse(_compositionStrengthCtrl.text.trim()),
       "has_composition2": int.parse(_hasComposition2Ctrl.text.trim()),
       "num_substitutes": int.parse(_numSubstitutesCtrl.text.trim()),
       "num_side_effects": int.parse(_numSideEffectsCtrl.text.trim()),
@@ -162,37 +218,31 @@ class _PredictionPageState extends State<PredictionPage> {
     };
 
     try {
-      final uri = Uri.parse("$kApiBaseUrl/predict");
-      final client = HttpClient();
+      final response = await http
+          .post(
+            Uri.parse("$kApiBaseUrl/predict"),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 20));
 
-      try {
-        final request = await client.postUrl(uri);
-        request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-        request.write(jsonEncode(body));
-
-        final response = await request.close().timeout(const Duration(seconds: 20));
-        final responseBody = await response.transform(utf8.decoder).join();
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(responseBody) as Map<String, dynamic>;
-          final price = data["predicted_price_inr"];
-          setState(() {
-            _resultText = "Predicted price: Rs $price";
-          });
-        } else {
-          String detail;
-          try {
-            final decoded = jsonDecode(responseBody);
-            detail = decoded["detail"]?.toString() ?? responseBody;
-          } catch (_) {
-            detail = responseBody;
-          }
-          setState(() {
-            _errorText = "Server error (${response.statusCode}): $detail";
-          });
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final price = data["predicted_price_inr"];
+        setState(() {
+          _resultText = "Predicted price: Rs $price";
+        });
+      } else {
+        String detail;
+        try {
+          final decoded = jsonDecode(response.body);
+          detail = decoded["detail"]?.toString() ?? response.body;
+        } catch (_) {
+          detail = response.body;
         }
-      } finally {
-        client.close();
+        setState(() {
+          _errorText = "Server error (${response.statusCode}): $detail";
+        });
       }
     } catch (e) {
       setState(() {
@@ -225,12 +275,14 @@ class _PredictionPageState extends State<PredictionPage> {
               _numericField(
                 controller: _isDiscontinuedCtrl,
                 label: "Is discontinued? (0 = No, 1 = Yes)",
-                validator: (v) => _requiredIntInRange(v, 0, 1, "Is discontinued"),
+                validator: (v) =>
+                    _requiredIntInRange(v, 0, 1, "Is discontinued"),
               ),
               _numericField(
                 controller: _hasComposition2Ctrl,
                 label: "Has a second active ingredient? (0 = No, 1 = Yes)",
-                validator: (v) => _requiredIntInRange(v, 0, 1, "Has composition 2"),
+                validator: (v) =>
+                    _requiredIntInRange(v, 0, 1, "Has composition 2"),
               ),
               _numericField(
                 controller: _habitFormingCtrl,
@@ -242,12 +294,14 @@ class _PredictionPageState extends State<PredictionPage> {
               _numericField(
                 controller: _manufacturerSizeCtrl,
                 label: "Manufacturer size (# products listed, 1-3000)",
-                validator: (v) => _requiredIntInRange(v, 1, 3000, "Manufacturer size"),
+                validator: (v) =>
+                    _requiredIntInRange(v, 1, 3000, "Manufacturer size"),
               ),
               _numericField(
                 controller: _packQuantityCtrl,
                 label: "Pack quantity (e.g. 10 for a strip of 10 tablets)",
-                validator: (v) => _requiredDoubleInRange(v, 0.01, 5000, "Pack quantity"),
+                validator: (v) =>
+                    _requiredDoubleInRange(v, 0.01, 5000, "Pack quantity"),
               ),
               _dropdownField(
                 label: "Pack container",
@@ -268,7 +322,8 @@ class _PredictionPageState extends State<PredictionPage> {
               _numericField(
                 controller: _compositionStrengthCtrl,
                 label: "Active ingredient strength in mg (0-60000)",
-                validator: (v) => _requiredDoubleInRange(v, 0, 60000, "Composition strength"),
+                validator: (v) =>
+                    _requiredDoubleInRange(v, 0, 60000, "Composition strength"),
               ),
               _dropdownField(
                 label: "Therapeutic class",
@@ -289,17 +344,20 @@ class _PredictionPageState extends State<PredictionPage> {
               _numericField(
                 controller: _numSubstitutesCtrl,
                 label: "Number of listed substitutes (0-20)",
-                validator: (v) => _requiredIntInRange(v, 0, 20, "Number of substitutes"),
+                validator: (v) =>
+                    _requiredIntInRange(v, 0, 20, "Number of substitutes"),
               ),
               _numericField(
                 controller: _numSideEffectsCtrl,
                 label: "Number of listed side effects (0-50)",
-                validator: (v) => _requiredIntInRange(v, 0, 50, "Number of side effects"),
+                validator: (v) =>
+                    _requiredIntInRange(v, 0, 50, "Number of side effects"),
               ),
               _numericField(
                 controller: _numUsesCtrl,
                 label: "Number of listed uses (0-10)",
-                validator: (v) => _requiredIntInRange(v, 0, 10, "Number of uses"),
+                validator: (v) =>
+                    _requiredIntInRange(v, 0, 10, "Number of uses"),
               ),
 
               const SizedBox(height: 24),
@@ -326,7 +384,8 @@ class _PredictionPageState extends State<PredictionPage> {
                     padding: const EdgeInsets.all(16),
                     child: Text(
                       _resultText!,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -397,7 +456,9 @@ class _PredictionPageState extends State<PredictionPage> {
         ),
         isExpanded: true,
         items: items
-            .map((item) => DropdownMenuItem(value: item, child: Text(item, overflow: TextOverflow.ellipsis)))
+            .map((item) => DropdownMenuItem(
+                value: item,
+                child: Text(item, overflow: TextOverflow.ellipsis)))
             .toList(),
         onChanged: onChanged,
         validator: validator,
