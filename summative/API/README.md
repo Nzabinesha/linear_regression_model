@@ -49,3 +49,5 @@ See the comment block above `CORSMiddleware` in `prediction.py`. Origins are
 explicitly allow-listed (not `*`) and restricted to `GET`/`POST` — update
 `ALLOWED_ORIGINS` with your actual deployed Flutter web origin (and/or your
 Render URL for same-origin testing) before recording the demo video.
+- `POST /upload-data` — drop a new labeled CSV into the incoming-data queue. Does not retrain by itself.
+- `GET /retrain-status` — check watcher status: last check time, last retrain time, rows used, resulting RMSE, files queued.
