@@ -71,8 +71,8 @@ within "Pain Analgesics"), a pattern only a tree-based model captures.
 
 ## API (Task 2)
 
-Base URL: **https://linear-regression-model-2-5ni5.onrender.com**
-Swagger UI: **https://linear-regression-model-2-5ni5.onrender.com/docs**
+Base URL: **[https://linear-regression-model-2-5ni5.onrender.com](https://linear-regression-model-2-5ni5.onrender.com)**
+Swagger UI: **[https://linear-regression-model-2-5ni5.onrender.com](https://linear-regression-model-2-5ni5.onrender.com)/docs**
 
 **Endpoints:**
 - `GET /` — health check + last auto-retrain status summary
